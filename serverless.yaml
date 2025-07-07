@@ -1,0 +1,126 @@
+service: walletify
+
+frameworkVersion: '3'
+
+custom:
+  config: ${file(env.yml):${opt:stage, 'dev'}}
+
+provider:
+  name: aws
+  runtime: python3.10
+  stage: ${opt:stage, 'dev'}
+  logRetentionInDays: 3
+  environment:
+    COGNITO_CLIENT_ID: ${self:custom.config.COGNITO_CLIENT_ID}
+    COGNITO_CLIENT_SECRET: ${self:custom.config.COGNITO_CLIENT_SECRET}
+    EXPENSES_TABLE: ExpensesTable
+    CATEGORIES_TABLE: CategoriesTable
+    MOVEMENTS_TABLE: MovementsTable
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+      Resource:
+        - arn:aws:dynamodb:${self:custom.config.REGION}:*:table/ExpensesTable
+
+functions:
+  login:
+    handler: src/login/login.handler
+    package:
+      individually: true
+      patterns:
+        - "!./**"
+        - "src/login/login.py"
+    events:
+      - http:
+          path: login
+          method: post
+          cors: true
+  createExpense:
+    handler: src/expenses/create.handler
+    package:
+      individually: true
+      patterns:
+        - "!./**"
+        - "src/expenses/create.py"
+    events:
+      - http:
+          path: expenses
+          method: post
+          cors: true
+          authorizer:
+            type: cognito_user_pools
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+
+resources:
+  Resources:
+    ApiGatewayAuthorizer:
+      Type: AWS::ApiGateway::Authorizer
+      Properties:
+        Name: CognitoAuthorizer
+        Type: COGNITO_USER_POOLS
+        IdentitySource: method.request.header.Authorization
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ProviderARNs:
+          - arn:aws:cognito-idp:${self:custom.config.REGION}:${aws:accountId}:userpool/${self:custom.config.COGNITO_USER_POOL_ID}
+
+    ExpensesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ExpensesTable
+        AttributeDefinitions:
+          - AttributeName: PK
+            AttributeType: S
+          - AttributeName: SK
+            AttributeType: S
+          - AttributeName: date
+            AttributeType: S
+        KeySchema:
+          - AttributeName: PK
+            KeyType: HASH
+          - AttributeName: SK
+            KeyType: RANGE
+        LocalSecondaryIndexes:
+          - IndexName: LSI_Date
+            KeySchema:
+              - AttributeName: PK
+                KeyType: HASH
+              - AttributeName: date
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
+
+    CategoriesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: CategoriesTable
+        AttributeDefinitions:
+          - AttributeName: PK
+            AttributeType: S
+          - AttributeName: SK
+            AttributeType: S
+        KeySchema:
+          - AttributeName: PK
+            KeyType: HASH
+          - AttributeName: SK
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+
+    MovementsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: MovementsTable
+        AttributeDefinitions:
+          - AttributeName: PK
+            AttributeType: S
+          - AttributeName: SK
+            AttributeType: S
+        KeySchema:
+          - AttributeName: PK
+            KeyType: HASH
+          - AttributeName: SK
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
