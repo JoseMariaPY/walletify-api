@@ -43,6 +43,7 @@ functions:
       patterns:
         - "!./**"
         - "src/expenses/create.py"
+        - "src/utils/common.py"
     events:
       - http:
           path: expenses
@@ -52,6 +53,9 @@ functions:
             type: cognito_user_pools
             authorizerId:
               Ref: ApiGatewayAuthorizer
+          request:
+            schemas:
+              application/json: ${file(schemas/create-expense.json)}
 
 resources:
   Resources:
@@ -77,6 +81,8 @@ resources:
             AttributeType: S
           - AttributeName: date
             AttributeType: S
+          - AttributeName: money
+            AttributeType: S 
         KeySchema:
           - AttributeName: PK
             KeyType: HASH
@@ -88,6 +94,14 @@ resources:
               - AttributeName: PK
                 KeyType: HASH
               - AttributeName: date
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: LSI_Money
+            KeySchema:
+              - AttributeName: PK
+                KeyType: HASH
+              - AttributeName: money
                 KeyType: RANGE
             Projection:
               ProjectionType: ALL

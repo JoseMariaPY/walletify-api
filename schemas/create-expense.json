@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "required": ["amount", "category_id", "date", "money"],
+  "properties": {
+    "amount": {
+      "type": "number"
+    },
+    "category_id": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "money": {
+      "type": "string"
+    }
+  }
+}
