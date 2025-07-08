@@ -1,6 +1,6 @@
 service: walletify
 
-frameworkVersion: '3'
+frameworkVersion: '4'
 
 custom:
   config: ${file(env.yml):${opt:stage, 'dev'}}
@@ -23,6 +23,7 @@ provider:
       Resource:
         - arn:aws:dynamodb:${self:custom.config.REGION}:*:table/ExpensesTable
 
+
 functions:
   login:
     handler: src/login/login.handler
@@ -36,6 +37,7 @@ functions:
           path: login
           method: post
           cors: true
+
   createExpense:
     handler: src/expenses/create.handler
     package:
@@ -56,7 +58,6 @@ functions:
           request:
             schemas:
               application/json: ${file(schemas/create-expense.json)}
-
 resources:
   Resources:
     ApiGatewayAuthorizer:
@@ -105,36 +106,4 @@ resources:
                 KeyType: RANGE
             Projection:
               ProjectionType: ALL
-        BillingMode: PAY_PER_REQUEST
-
-    CategoriesTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: CategoriesTable
-        AttributeDefinitions:
-          - AttributeName: PK
-            AttributeType: S
-          - AttributeName: SK
-            AttributeType: S
-        KeySchema:
-          - AttributeName: PK
-            KeyType: HASH
-          - AttributeName: SK
-            KeyType: RANGE
-        BillingMode: PAY_PER_REQUEST
-
-    MovementsTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: MovementsTable
-        AttributeDefinitions:
-          - AttributeName: PK
-            AttributeType: S
-          - AttributeName: SK
-            AttributeType: S
-        KeySchema:
-          - AttributeName: PK
-            KeyType: HASH
-          - AttributeName: SK
-            KeyType: RANGE
         BillingMode: PAY_PER_REQUEST

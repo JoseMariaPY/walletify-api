@@ -1,0 +1,28 @@
+{
+  "name": "walletify",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "deploy": "serverless deploy",
+    "deploy:dev": "serverless deploy --stage dev",
+    "deploy:prod": "serverless deploy --stage prod",
+    "remove": "serverless remove",
+    "remove:dev": "serverless remove --stage dev",
+    "remove:prod": "serverless remove --stage prod"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JoseMariaPY/walletify-api.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JoseMariaPY/walletify-api/issues"
+  },
+  "homepage": "https://github.com/JoseMariaPY/walletify-api#readme",
+  "devDependencies": {
+    "serverless": "^4.17.1"
+  }
+}
